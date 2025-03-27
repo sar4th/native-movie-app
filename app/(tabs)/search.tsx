@@ -1,9 +1,10 @@
 import MovieCard from "@/components/MovieCard";
 import { SearchBar } from "@/components/search-bar";
+import { useDebounce } from "@/components/useDebounce";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { useTMDB } from "@/hooks/useGetMovies";
-import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -13,10 +14,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+export default function Search() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const debounceValue = useDebounce(searchQuery, 500);
+  const { data, loading, error } = useTMDB(debounceValue);
 
-export default function Index() {
-  const { data, loading, error } = useTMDB();
-
+  const handleMovieSearch = (query) => {
+    setSearchQuery(query); // Update the state
+  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#030014" }}>
       <Image
@@ -56,28 +61,16 @@ export default function Index() {
           ) : (
             <>
               <SearchBar
-                onPress={() => router.push("/search")}
+                handleSearch={handleMovieSearch}
                 placeholder="Search for a movie"
               />
-
-              <Text
-                style={{
-                  fontSize: 18,
-                  color: "white",
-                  fontWeight: "bold",
-                  marginTop: 40,
-                  marginBottom: 12,
-                }}
-              >
-                Latest Movies
-              </Text>
-
               <FlatList
                 data={data}
                 renderItem={({ item }) => <MovieCard {...item} />}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={3}
                 scrollEnabled={false}
+                style={{ marginTop: 40 }}
                 columnWrapperStyle={{
                   justifyContent: "space-between",
                   gap: 20,
