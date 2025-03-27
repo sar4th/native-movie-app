@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
-  const debounceValue = useDebounce(searchQuery, 500);
+  const debounceValue = useDebounce(searchQuery, 800);
   const { data, loading, error } = useTMDB(debounceValue);
 
   const handleMovieSearch = (query) => {
@@ -63,6 +63,7 @@ export default function Search() {
               <SearchBar
                 handleSearch={handleMovieSearch}
                 placeholder="Search for a movie"
+                searchQuery={searchQuery}
               />
               <FlatList
                 data={data}
