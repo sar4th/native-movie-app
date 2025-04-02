@@ -7,6 +7,8 @@ import star from "@/assets/icons/star.png";
 import play from "@/assets/icons/play.png";
 import arrow from "@/assets/icons/arrow.png";
 
+import rightArrow from "@/assets/icons/right-arrow.png";
+import whiteArrow from "@/assets/icons/white-right-arrow.png";
 export const icons = {
   home,
   search,
@@ -16,4 +18,6 @@ export const icons = {
   star,
   play,
   arrow,
+  rightArrow,
+  whiteArrow,
 };
