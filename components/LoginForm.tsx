@@ -8,11 +8,8 @@ import {
 } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useState } from "react";
-import { Account, Client } from "react-native-appwrite";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-// If using Expo, you might prefer SecureStore for sensitive data:
-// import * as SecureStore from 'expo-secure-store';
+import { loginUser } from "@/utils/auth";
 
 const LoginForm = () => {
   const {
@@ -27,65 +24,12 @@ const LoginForm = () => {
   });
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-
-  const client = new Client().setProject("67ebd6aa00151ab4eae3"); // Your project ID
-  const account = new Account(client);
-
-  // Save user data to storage
-  const saveUserData = async (userData) => {
-    try {
-      // Save the entire user object as a JSON string
-      await AsyncStorage.setItem("userData", JSON.stringify(userData));
-
-      // For authentication purposes, you might want to store the session separately
-      await AsyncStorage.setItem(
-        "userSession",
-        JSON.stringify({
-          userId: userData.$id,
-          email: userData.email,
-          isLoggedIn: true,
-          lastLogin: new Date().toISOString(),
-        }),
-      );
-
-      console.log("User data saved successfully");
-    } catch (error) {
-      console.error("Error saving user data:", error);
-    }
-  };
-
-  // Get current user after successful login
-  const getCurrentUser = async () => {
-    try {
-      const userData = await account.get();
-      return userData;
-    } catch (error) {
-      console.error("Error getting current user:", error);
-      return null;
-    }
-  };
-
   const onSubmit = async (data) => {
     setIsLoading(true);
-
     try {
-      // Create session with email and password
-      const session = await account.createEmailPasswordSession(
-        data.email,
-        data.password,
-      );
-
-      // Get current user data
-      const userData = await getCurrentUser();
-
-      if (userData) {
-        // Store user data on device
-        await saveUserData(userData);
-        router.push("/");
-      } else {
-        Alert.alert("Login Error", "Failed to get user data after login");
-      }
-    } catch (err) {
+      const userSession = await loginUser(data);
+      router.push("/");
+    } catch (err: any) {
       console.error("Login error:", err);
       Alert.alert("Login Failed", err.message || "Invalid credentials");
     } finally {

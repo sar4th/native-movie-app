@@ -33,8 +33,6 @@ const SignUpForm = () => {
   const account = new Account(client);
 
   const onSubmit = async (data) => {
-    console.log("Form Data:", data);
-
     try {
       const response = await account.create(
         ID.unique(), // Generates a unique user ID

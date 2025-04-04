@@ -1,23 +1,23 @@
 import LoginForm from "@/components/LoginForm";
 import SignUpForm from "@/components/SignUpForm";
 import UserProfile from "@/components/user-profile";
-import { getCurrentUser, getUserData, isUserLoggedIn } from "@/utils/auth";
+import { getCurrentUser } from "@/utils/auth";
+import { useIsFocused } from "@react-navigation/native";
 import { useState, useEffect } from "react";
 import { Text, View, ActivityIndicator } from "react-native";
 
 export default function Profile() {
+  const isFocused = useIsFocused();
   const [signUpClicked, setSignUpClicked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [userData, setUserData] = useState();
   useEffect(() => {
-    // Check if user is logged in when component mounts
     const checkLoginStatus = async () => {
       try {
         const currentUserData = await getCurrentUser();
-        setIsLoggedIn(!currentUserData.expired);
-        console.log(currentUserData, "sjsgjhjghs");
+        setIsLoggedIn(!currentUserData?.targets[0]?.expired);
         setUserData(currentUserData);
       } catch (error) {
         console.error("Error checking login status:", error);
@@ -28,7 +28,7 @@ export default function Profile() {
     };
 
     checkLoginStatus();
-  }, []);
+  }, [isFocused]);
 
   const toggleSignUp = () => {
     setSignUpClicked(!signUpClicked);

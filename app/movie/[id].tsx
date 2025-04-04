@@ -1,30 +1,52 @@
+import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { useTMDB } from "@/hooks/useGetMovies";
+import { addMovieToFav, getSavedMovies } from "@/utils/appwrite";
+import { getCurrentUser } from "@/utils/auth";
 import { useLocalSearchParams } from "expo-router";
-import { Image, Text, View, StyleSheet, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Image,
+  Text,
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Poster Component
-const Poster = ({ posterPath }: { posterPath?: string }) => {
+/* ==================== Poster Component ==================== */
+interface PosterProps {
+  posterPath?: string;
+}
+
+const Poster: React.FC<PosterProps> = ({ posterPath }) => {
   if (!posterPath) return null;
   return (
-    <Image
-      source={{ uri: `https://image.tmdb.org/t/p/w500${posterPath}` }}
-      resizeMode="cover"
-      style={styles.poster}
-    />
+    <>
+      <Image
+        source={{ uri: `https://image.tmdb.org/t/p/w500${posterPath}` }}
+        resizeMode="cover"
+        style={styles.poster}
+      />
+    </>
   );
 };
 
-// Title and Info Component
-const TitleAndInfo = ({
-  title,
-  releaseDate,
-  runtime,
-}: {
+/* ==================== Title and Info Component ==================== */
+interface TitleAndInfoProps {
   title?: string;
   releaseDate?: string;
   runtime?: number;
+  onAddToWishList: VoidFunction;
+}
+
+const TitleAndInfo: React.FC<TitleAndInfoProps> = ({
+  title,
+  releaseDate,
+  runtime,
+
+  onAddToWishList,
 }) => {
   const releaseYear = releaseDate ? releaseDate.split("-")[0] : "N/A";
   const runtimeFormatted = runtime
@@ -33,7 +55,24 @@ const TitleAndInfo = ({
 
   return (
     <View style={styles.titleInfoContainer}>
-      <Text style={styles.title}>{title}</Text>
+      <View
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        {" "}
+        <Text style={styles.title}>{title}</Text>
+        <TouchableOpacity onPress={onAddToWishList}>
+          <Image
+            source={icons.heartIconWhite}
+            resizeMode="cover"
+            style={styles.wishListIcon}
+          />
+        </TouchableOpacity>
+      </View>
       <View style={styles.infoRow}>
         <Text style={styles.infoText}>{releaseYear}</Text>
         <Text style={[styles.infoText, styles.runtimeText]}>
@@ -44,15 +83,17 @@ const TitleAndInfo = ({
   );
 };
 
-// Stats Component
-const Stats = ({
-  voteAverage,
-  voteCount,
-  popularity,
-}: {
+/* ==================== Stats Component ==================== */
+interface StatsProps {
   voteAverage?: number;
   voteCount?: number;
   popularity?: number;
+}
+
+const Stats: React.FC<StatsProps> = ({
+  voteAverage,
+  voteCount,
+  popularity,
 }) => {
   return (
     <View style={styles.statsContainer}>
@@ -70,22 +111,25 @@ const Stats = ({
   );
 };
 
-// Overview Component
-const Overview = ({ overview }: { overview?: string }) => (
+/* ==================== Overview Component ==================== */
+interface OverviewProps {
+  overview?: string;
+}
+
+const Overview: React.FC<OverviewProps> = ({ overview }) => (
   <View style={styles.overviewContainer}>
     <Text style={styles.overviewTitle}>Overview</Text>
     <Text style={styles.overviewText}>{overview}</Text>
   </View>
 );
 
-// Details Component
-const Details = ({
-  releaseDate,
-  status,
-}: {
+/* ==================== Details Component ==================== */
+interface DetailsProps {
   releaseDate?: string;
   status?: string;
-}) => (
+}
+
+const Details: React.FC<DetailsProps> = ({ releaseDate, status }) => (
   <View style={styles.detailsRow}>
     <View style={styles.detailItem}>
       <Text style={styles.detailLabel}>Release Date</Text>
@@ -98,61 +142,73 @@ const Details = ({
   </View>
 );
 
-// Genres Component
-const Genres = ({ genres }: { genres: any[] }) => {
-  return (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.detailLabel}>Genres</Text>
-      <View style={styles.rowContainer}>
-        {genres?.map((item, index) => (
-          <View key={index} style={styles.genreContainer}>
-            <Text style={styles.genreText}>{item.name}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-};
+/* ==================== Genres Component ==================== */
+interface GenresProps {
+  genres: any[];
+}
 
-// Countries Component
-const Countries = ({ countries }: { countries: any[] }) => {
-  return (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.detailLabel}>Countries</Text>
-      <View style={styles.rowContainer}>
-        {countries?.map((item, index) => (
-          <View key={index} style={styles.genreContainer}>
-            <Text style={styles.genreText}>{item.name}</Text>
-          </View>
-        ))}
-      </View>
+const Genres: React.FC<GenresProps> = ({ genres }) => (
+  <View style={styles.sectionContainer}>
+    <Text style={styles.detailLabel}>Genres</Text>
+    <View style={styles.rowContainer}>
+      {genres?.map((item, index) => (
+        <View key={index} style={styles.genreContainer}>
+          <Text style={styles.genreText}>{item.name}</Text>
+        </View>
+      ))}
     </View>
-  );
-};
+  </View>
+);
 
-// Budget Component
-const Budget = ({ data }: { data: any }) => {
-  return (
-    <View style={styles.budgetContainer}>
-      <View>
-        <Text style={styles.detailLabel}>Budget</Text>
-        <Text style={styles.detailValue}>
-          {Math.round((data?.budget ?? 0) / 1_000_000)} million
-        </Text>
-      </View>
-      <View>
-        <Text style={styles.detailLabel}>Revenue</Text>
-        <Text style={styles.detailValue}>
-          {Math.round((data?.revenue ?? 0) / 1_000_000)} million
-        </Text>
-      </View>
+/* ==================== Countries Component ==================== */
+interface CountriesProps {
+  countries: any[];
+}
+
+const Countries: React.FC<CountriesProps> = ({ countries }) => (
+  <View style={styles.sectionContainer}>
+    <Text style={styles.detailLabel}>Countries</Text>
+    <View style={styles.rowContainer}>
+      {countries?.map((item, index) => (
+        <View key={index} style={styles.genreContainer}>
+          <Text style={styles.genreText}>{item.name}</Text>
+        </View>
+      ))}
     </View>
-  );
-};
+  </View>
+);
 
-const ProductionCompanies = ({ companies }: { companies: any[] }) => {
+/* ==================== Budget Component ==================== */
+interface BudgetProps {
+  data: any;
+}
+
+const Budget: React.FC<BudgetProps> = ({ data }) => (
+  <View style={styles.budgetContainer}>
+    <View>
+      <Text style={styles.detailLabel}>Budget</Text>
+      <Text style={styles.detailValue}>
+        {Math.round((data?.budget ?? 0) / 1_000_000)} million
+      </Text>
+    </View>
+    <View>
+      <Text style={styles.detailLabel}>Revenue</Text>
+      <Text style={styles.detailValue}>
+        {Math.round((data?.revenue ?? 0) / 1_000_000)} million
+      </Text>
+    </View>
+  </View>
+);
+
+/* ==================== Production Companies Component ==================== */
+interface ProductionCompaniesProps {
+  companies: any[];
+}
+
+const ProductionCompanies: React.FC<ProductionCompaniesProps> = ({
+  companies,
+}) => {
   if (!companies?.length) return null;
-
   return (
     <View style={styles.sectionContainer}>
       <Text style={styles.detailLabel}>Production Companies</Text>
@@ -166,10 +222,47 @@ const ProductionCompanies = ({ companies }: { companies: any[] }) => {
   );
 };
 
-// Main MovieDetails Component
-const MovieDetails = () => {
+/* ==================== Main MovieDetails Component ==================== */
+const MovieDetails: React.FC = () => {
   const { id } = useLocalSearchParams();
+  const [user, setUser] = useState<any>(null);
+  const [userSavedMovies, setUserSavedMovies] = useState();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      const userSavedMovies = await getSavedMovies(currentUser.targets[0].$id);
+      setUserSavedMovies(userSavedMovies);
+    };
+    fetchUser();
+  }, []);
+
   const { data, loading, error } = useTMDB(id, "details");
+  const [isLoading, setIsLoading] = useState(false);
+  async function handleAddToWishListClick() {
+    if (isLoading) return;
+    setIsLoading(true);
+    if (!user || !data) return;
+    const payload = {
+      userid: user.targets[0].$id,
+      title: data?.original_title,
+      poster_path: data?.poster_path,
+      id: id,
+      vote_average: String(data?.vote_average),
+      release_date: data?.release_date,
+    };
+    try {
+      setIsLoading(true);
+      const response = await addMovieToFav(payload);
+      if (response.status == 201) {
+        console.log("Movie saved succesfully");
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.log(err);
+      setIsLoading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -198,6 +291,7 @@ const MovieDetails = () => {
           title={data?.original_title}
           releaseDate={data?.release_date}
           runtime={data?.runtime}
+          onAddToWishList={handleAddToWishListClick}
         />
         <Stats
           voteAverage={data?.vote_average}
@@ -209,7 +303,6 @@ const MovieDetails = () => {
         <Genres genres={data?.genres} />
         <Countries countries={data?.production_countries} />
         <Budget data={data} />
-
         <ProductionCompanies companies={data?.production_companies} />
       </ScrollView>
     </View>
@@ -234,6 +327,10 @@ const styles = StyleSheet.create({
   poster: {
     width: "100%",
     height: 400,
+  },
+  wishListIcon: {
+    width: 30,
+    height: 30,
   },
   content: {
     paddingTop: 17,

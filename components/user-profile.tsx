@@ -1,10 +1,12 @@
 import { icons } from "@/constants/icons";
-import { deleteSession, logoutUser } from "@/utils/auth";
+import { logOutUser } from "@/utils/auth";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Image, View, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 const UserProfile = ({ userData }: any) => {
-const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -14,7 +16,7 @@ const router = useRouter()
           resizeMode="cover"
         />
       </View>
-      <Text style={{ color: "white", fontSize: 30 }}>{userData?.$id}</Text>
+      <Text style={{ color: "white", fontSize: 30 }}>{userData?.name}</Text>
 
       <Text style={{ color: "white", fontSize: 16 }}>{userData?.email}</Text>
       <View style={{ marginTop: 30, width: "100%", display: "flex", gap: 10 }}>
@@ -38,19 +40,23 @@ const router = useRouter()
       </View>
       <TouchableOpacity
         style={styles.button}
-        onPress={() =>
-          logoutUser().then(() => {
-            deleteSession().then(()=>{
+        onPress={() => {
+          setIsLoading(true);
+          logOutUser()
+            .then(() => {
+              setIsLoading(false);
 
-
-
-	    router.push("/")
-	    })
-          })
-        }
+              router.push("/");
+            })
+            .catch((err) => {
+              setIsLoading(false);
+              console.log(err);
+            });
+        }}
       >
-        {" "}
-        <Text style={{ color: "white", fontSize: 24 }}>SignOut</Text>
+        <Text style={{ color: "white", fontSize: 24 }}>
+          {isLoading ? "SigningOut..." : "SignOut"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
