@@ -50,7 +50,7 @@ export default function Profile() {
         <UserProfile userData={userData} />
       ) : signUpClicked ? (
         <>
-          <SignUpForm />
+          <SignUpForm toggleSignUp={toggleSignUp} />
           <Text
             style={{
               color: "#A076F2",

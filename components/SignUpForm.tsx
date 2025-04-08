@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Account, Client, ID } from "react-native-appwrite";
 import { useRouter } from "expo-router";
 
-const SignUpForm = () => {
+const SignUpForm = ({ toggleSignUp }) => {
   const {
     control,
     handleSubmit,
@@ -40,8 +40,7 @@ const SignUpForm = () => {
         data.password,
         data.name,
       );
-
-      console.log("Account Created:", response);
+      toggleSignUp()
       router.push("/");
     } catch (error) {
       console.log("Signup Error:", error);

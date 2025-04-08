@@ -10,9 +10,11 @@ import rightArrow from "@/assets/icons/right-arrow.png";
 import whiteArrow from "@/assets/icons/white-right-arrow.png";
 import heartIconWhite from "@/assets/icons/whiteheart.png";
 
+import appIcon from "@/assets/icons/apicon.png";
 import redHeart from "@/assets/icons/redheart.png";
 export const icons = {
   home,
+  appIcon,
   heartIconWhite,
   redHeart,
   search,

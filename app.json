@@ -7,12 +7,17 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+  "icon":"./assets/icons/apicon.png" ,
+
     "ios": {
       "supportsTablet": true
     },
     "android": {
+
+      "permissions": ["INTERNET"],
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+ "foregroundImage":"./assets/icons/apicon.png",
       },
       "package": "com.sar4th.moviedb"
     },

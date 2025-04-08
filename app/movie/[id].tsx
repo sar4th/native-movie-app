@@ -1,12 +1,12 @@
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { useTMDB } from "@/hooks/useGetMovies";
-import { addMovieToFav, getSavedMovies } from "@/utils/appwrite";
+import { addMovieToFav, deleteMovie, getSavedMovies } from "@/utils/appwrite";
 import { getCurrentUser } from "@/utils/auth";
 import { useLocalSearchParams } from "expo-router";
+import NetInfo from '@react-native-community/netinfo';
 import React, { useEffect, useState } from "react";
 import {
-  Image,
   Text,
   View,
   StyleSheet,
@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { Image } from 'expo-image';
 /* ==================== Poster Component ==================== */
 interface PosterProps {
   posterPath?: string;
@@ -22,12 +22,17 @@ interface PosterProps {
 
 const Poster: React.FC<PosterProps> = ({ posterPath }) => {
   if (!posterPath) return null;
+
+  const blurhash =
+    '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
   return (
     <>
       <Image
         source={{ uri: `https://image.tmdb.org/t/p/w500${posterPath}` }}
-        resizeMode="cover"
         style={styles.poster}
+        placeholder={{ blurhash }}
+        contentFit="cover"
+        transition={1000}
       />
     </>
   );
@@ -39,14 +44,15 @@ interface TitleAndInfoProps {
   releaseDate?: string;
   runtime?: number;
   onAddToWishList: VoidFunction;
+  isThisSaved: boolean
 }
 
 const TitleAndInfo: React.FC<TitleAndInfoProps> = ({
   title,
   releaseDate,
   runtime,
-
   onAddToWishList,
+  isThisSaved
 }) => {
   const releaseYear = releaseDate ? releaseDate.split("-")[0] : "N/A";
   const runtimeFormatted = runtime
@@ -63,11 +69,10 @@ const TitleAndInfo: React.FC<TitleAndInfoProps> = ({
           justifyContent: "space-between",
         }}
       >
-        {" "}
         <Text style={styles.title}>{title}</Text>
         <TouchableOpacity onPress={onAddToWishList}>
           <Image
-            source={icons.heartIconWhite}
+            source={isThisSaved ? icons.redHeart : icons.heartIconWhite}
             resizeMode="cover"
             style={styles.wishListIcon}
           />
@@ -226,16 +231,43 @@ const ProductionCompanies: React.FC<ProductionCompaniesProps> = ({
 const MovieDetails: React.FC = () => {
   const { id } = useLocalSearchParams();
   const [user, setUser] = useState<any>(null);
-  const [userSavedMovies, setUserSavedMovies] = useState();
+  const [isSaved, setIsSaved] = useState(false);
+
+  const [savedMovie, setSavedMovie] = useState();
   useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      const userSavedMovies = await getSavedMovies(currentUser.targets[0].$id);
-      setUserSavedMovies(userSavedMovies);
-    };
-    fetchUser();
+    const unsubscribe = NetInfo.addEventListener(state => {
+      console.log('Connection type', state.type);
+      console.log('Is connected?', state.isConnected);
+    });
+
+    return () => unsubscribe();
   }, []);
+  useEffect(() => {
+    const fetchUserAndCheckMovie = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+
+        const targetId = currentUser?.targets?.[0]?.$id;
+        if (!targetId) return;
+
+        const savedMovies = await getSavedMovies(targetId);
+        const isSavedMovie = savedMovies?.some((movie) => movie.id === id);
+
+        const savedMovie = savedMovies?.find((movie) => movie.id === id);
+
+        if (isSavedMovie) {
+          setIsSaved(true);
+          setSavedMovie(savedMovie)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user or movies:', error);
+      }
+    };
+
+    fetchUserAndCheckMovie();
+  }, []);
+
 
   const { data, loading, error } = useTMDB(id, "details");
   const [isLoading, setIsLoading] = useState(false);
@@ -243,6 +275,15 @@ const MovieDetails: React.FC = () => {
     if (isLoading) return;
     setIsLoading(true);
     if (!user || !data) return;
+    if (isSaved) {
+      setIsLoading(true);
+      const response = await deleteMovie(savedMovie?.$id)
+      if (Object.values(response).length > 0) {
+        setIsLoading(false);
+        setIsSaved(false)
+        return
+      }
+    }
     const payload = {
       userid: user.targets[0].$id,
       title: data?.original_title,
@@ -254,9 +295,9 @@ const MovieDetails: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await addMovieToFav(payload);
-      if (response.status == 201) {
-        console.log("Movie saved succesfully");
+      if (Object.values(response).length > 0) {
         setIsLoading(false);
+        setIsSaved(true)
       }
     } catch (err) {
       console.log(err);
@@ -292,6 +333,7 @@ const MovieDetails: React.FC = () => {
           releaseDate={data?.release_date}
           runtime={data?.runtime}
           onAddToWishList={handleAddToWishListClick}
+          isThisSaved={isSaved}
         />
         <Stats
           voteAverage={data?.vote_average}

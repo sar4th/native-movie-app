@@ -9,8 +9,7 @@ export const getSavedMovies = async (userId: string) => {
       "67ee79d700015acbe1b1",
       [Query.equal("userid", userId)],
     );
-    console.log(response, "Fetched saved movies");
-    return response;
+    return response.documents;
   } catch (error) {
     console.error("Error fetching saved movies:", error);
     return null;
@@ -25,22 +24,22 @@ export const addMovieToFav = async (payload: any): Promise<void> => {
       ID.unique(),
       payload,
     );
-    console.log(response, "Movie added to favorites successfully");
+    return response
   } catch (error) {
     console.error("Error adding movie to favorites:", error);
   }
 };
 
-export const deleteMovie = async (payload: any): Promise<void> => {
+export const deleteMovie = async (documentId: string): Promise<void> => {
   try {
     const result = await databases.deleteDocument(
       "67ebd7370036585dd74f",
       "67ee79d700015acbe1b1",
 
-      "<DOCUMENT_ID>", // documentId
+      documentId
     );
-    console.log(result, "Movie added to favorites successfully");
+    return result
   } catch (error) {
-    console.error("Error adding movie to favorites:", error);
+    console.error("Error removing movie from favorites:", error);
   }
 };

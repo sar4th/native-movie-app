@@ -83,7 +83,7 @@ export default function Saved() {
                 searchQuery={searchQuery}
               />
               <FlatList
-                data={userSavedMovies?.documents}
+                data={userSavedMovies}
                 renderItem={({ item }) => <MovieCard {...item} />}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={3}
