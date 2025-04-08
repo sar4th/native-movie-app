@@ -16,7 +16,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const { data, loading, error } = useTMDB();
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#030014" }}>
       <Image
@@ -85,7 +84,7 @@ export default function Index() {
                   marginBottom: 10,
                 }}
 
-                  
+
               />
             </>
           )}
