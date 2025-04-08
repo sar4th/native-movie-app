@@ -7,17 +7,17 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-  "icon":"./assets/icons/apicon.png" ,
-
+    "icon": "./assets/icons/apicon.png",
     "ios": {
       "supportsTablet": true
     },
     "android": {
-
-      "permissions": ["INTERNET"],
+      "permissions": [
+        "INTERNET"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
- "foregroundImage":"./assets/icons/apicon.png",
+        "foregroundImage": "./assets/icons/apicon.png"
       },
       "package": "com.sar4th.moviedb"
     },
@@ -33,7 +33,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "1fc9c42c-372f-4a91-8558-a8f4f2ab7b09"
+        "projectId": "792e7acf-3d13-4453-911c-a1330a64c932"
       }
     }
   }
