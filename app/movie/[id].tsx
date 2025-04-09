@@ -5,8 +5,9 @@ import { addMovieToFav, deleteMovie, getSavedMovies } from "@/utils/appwrite";
 import { getCurrentUser } from "@/utils/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import NetInfo from "@react-native-community/netinfo";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import YoutubePlayer from "react-native-youtube-iframe";
+import * as ScreenOrientation from "expo-screen-orientation";
 import {
   Text,
   View,
@@ -44,12 +45,26 @@ const Poster: React.FC<PosterProps> = ({ posterPath, videoId }) => {
   );
 };
 const VideoPlayer = ({ videoId }) => {
+  const playerRef = useRef(null);
+
+  const onFullScreenChange = async (isFullscreen: boolean) => {
+    if (isFullscreen) {
+      await ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.LANDSCAPE,
+      );
+    } else {
+      await ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP,
+      );
+    }
+  };
   return (
     <YoutubePlayer
       height={250}
       play={true}
       forceAndroidAutoplay
       videoId={videoId}
+      onFullScreenChange={onFullScreenChange}
     />
   );
 };
