@@ -17,10 +17,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const debounceValue = useDebounce(searchQuery, 800);
-  const { data, loading, error } = useTMDB(debounceValue);
-
+  const { data, loading, error } = useTMDB(debounceValue, "search");
+  console.log(data, "this is ")
   const handleMovieSearch = (query) => {
-    setSearchQuery(query); // Update the state
+    setSearchQuery(query);
   };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#030014" }}>
@@ -66,7 +66,7 @@ export default function Search() {
                 searchQuery={searchQuery}
               />
               <FlatList
-                data={data}
+                data={data ?? data}
                 renderItem={({ item }) => <MovieCard {...item} />}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={3}

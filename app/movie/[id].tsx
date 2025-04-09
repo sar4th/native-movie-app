@@ -65,6 +65,7 @@ const VideoPlayer = ({ videoId }) => {
       forceAndroidAutoplay
       videoId={videoId}
       onFullScreenChange={onFullScreenChange}
+      mute={true}
     />
   );
 };

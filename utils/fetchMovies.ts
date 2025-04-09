@@ -50,8 +50,8 @@ const fetchFromAPI = async (
 /**
  * Fetch movies with predefined query parameters
  */
-export const fetchMovies = async () => {
-  return await fetchFromAPI("discover/movie", {
+export const fetchMovies = async (path?: string) => {
+  return await fetchFromAPI(path ? path : "discover/movie", {
     include_adult: "false",
     include_video: "false",
     language: "en-US",

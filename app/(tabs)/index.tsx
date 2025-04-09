@@ -1,21 +1,41 @@
-import MovieCard from "@/components/MovieCard";
-import { SearchBar } from "@/components/search-bar";
-import { icons } from "@/constants/icons";
-import { images } from "@/constants/images";
-import { useTMDB } from "@/hooks/useGetMovies";
-import { router } from "expo-router";
+import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+
+import MovieCard from "@/components/MovieCard";
+import { SearchBar } from "@/components/search-bar";
+import { icons } from "@/constants/icons";
+import { images } from "@/constants/images";
+import { useTMDB } from "@/hooks/useGetMovies";
+
+const TABS = ["Popular", "Top Rated", "Upcoming"];
 
 export default function Index() {
-  const { data, loading, error } = useTMDB();
+  const { data, loading, error } = useTMDB(undefined, "dashboard-movies");
+  const [activeTab, setActiveTab] = useState("Popular");
+
+  const getMovies = () => {
+    switch (activeTab) {
+      case "Popular":
+        return data?.popularMovies || [];
+      case "Top Rated":
+        return data?.topRatedMovies || [];
+      case "Upcoming":
+        return data?.upcomingMovies || [];
+      default:
+        return [];
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#030014" }}>
       <Image
@@ -59,21 +79,43 @@ export default function Index() {
                 placeholder="Search for a movie"
               />
 
-              <Text
+              <View
                 style={{
-                  fontSize: 18,
-                  color: "white",
-                  fontWeight: "bold",
+                  flexDirection: "row",
+                  justifyContent: "space-around",
                   marginTop: 40,
-                  marginBottom: 12,
+                  marginBottom: 20,
                 }}
               >
-                Latest Movies
-              </Text>
+                {TABS.map((tab) => (
+                  <Pressable
+                    key={tab}
+                    onPress={() => setActiveTab(tab)}
+                    style={{
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 20,
+                      backgroundColor:
+                        activeTab === tab ? "white" : "#1a1a2e",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: activeTab === tab ? "#000" : "#fff",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {tab}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
 
               <FlatList
-                data={data}
-                renderItem={({ item }) => <MovieCard {...item} />}
+                data={getMovies()}
+                renderItem={({ item }) =>
+                  item.empty ? <View style={{ flex: 1 }} /> : <MovieCard {...item} />
+                }
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={3}
                 scrollEnabled={false}
@@ -83,8 +125,6 @@ export default function Index() {
                   paddingRight: 5,
                   marginBottom: 10,
                 }}
-
-
               />
             </>
           )}
