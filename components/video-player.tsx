@@ -2,30 +2,39 @@ import { StyleSheet, View, ActivityIndicator } from "react-native";
 import WebView from "react-native-webview";
 import { useState } from "react";
 
+import { ServerDropdown } from "./ServerDropdown";
 export const WebViewVideoPlayer = ({ movieVideoId }: string) => {
   const [loading, setLoading] = useState(true);
 
+  const [url, setUrl] = useState(`https://vidlink.pro/movie/${movieVideoId}`);
+  console.log(url, "url");
   return (
-    <View style={styles.wrapper}>
-      {loading && (
-        <ActivityIndicator
-          size="large"
-          color="#a855f7"
-          style={StyleSheet.absoluteFillObject}
-        />
-      )}
+    <>
+      <View style={styles.wrapper}>
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color="#a855f7"
+            style={StyleSheet.absoluteFillObject}
+          />
+        )}
 
-      <WebView
-        style={styles.webview}
-        source={{ uri: `https://vidlink.pro/movie/${movieVideoId}` }}
-        onLoadEnd={() => setLoading(false)}
-        allowsFullscreenVideo
-        mediaPlaybackRequiresUserAction={false}
-        javaScriptEnabled
-        allowsInlineMediaPlayback
-        startInLoadingState
+        <WebView
+          style={styles.webview}
+          source={{ uri: url }}
+          onLoadEnd={() => setLoading(false)}
+          allowsFullscreenVideo
+          mediaPlaybackRequiresUserAction={false}
+          javaScriptEnabled
+          allowsInlineMediaPlayback
+          startInLoadingState
+        />
+      </View>
+      <ServerDropdown
+        onSelect={(selectedUrl) => setUrl(selectedUrl)}
+        movieId={movieVideoId}
       />
-    </View>
+    </>
   );
 };
 
