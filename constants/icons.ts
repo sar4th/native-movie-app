@@ -12,6 +12,8 @@ import heartIconWhite from "@/assets/icons/whiteheart.png";
 
 import appIcon from "@/assets/icons/apicon.png";
 import redHeart from "@/assets/icons/redheart.png";
+
+import noMoviesIcon from "@/assets/icons/no-movies.png";
 export const icons = {
   home,
   appIcon,
@@ -26,4 +28,5 @@ export const icons = {
   arrow,
   rightArrow,
   whiteArrow,
+  noMoviesIcon,
 };

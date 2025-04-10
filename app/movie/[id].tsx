@@ -18,19 +18,30 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { fetchMovies, fetchMovieVideos } from "@/utils/fetchMovies";
+import { PlayButton } from "@/components/PlayButton";
+import { WebViewVideoPlayer } from "@/components/video-player";
 /* ==================== Poster Component ==================== */
 interface PosterProps {
   posterPath?: string;
   videoId: string;
+  videoPlayerStatus: boolean;
+  movieVideoId: string;
 }
 
-const Poster: React.FC<PosterProps> = ({ posterPath, videoId }) => {
+const Poster: React.FC<PosterProps> = ({
+  posterPath,
+  videoId,
+  videoPlayerStatus,
+  movieVideoId,
+}) => {
   if (!posterPath) return null;
   const blurhash =
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
   return (
     <>
-      {videoId ? (
+      {videoPlayerStatus == true ? (
+        <WebViewVideoPlayer movieVideoId={movieVideoId} />
+      ) : videoId ? (
         <VideoPlayer videoId={videoId ?? videoId} />
       ) : (
         <Image
@@ -269,6 +280,7 @@ const MovieDetails: React.FC = () => {
 
   const [savedMovie, setSavedMovie] = useState();
 
+  const [videoPlayerStatus, setVideoPlayerStatus] = useState(false);
   useEffect(() => {
     const fetchUserAndCheckMovie = async () => {
       try {
@@ -339,7 +351,9 @@ const MovieDetails: React.FC = () => {
       setIsLoading(false);
     }
   }
-
+  const handleMoviePlay = () => {
+    setVideoPlayerStatus((prev) => !prev);
+  };
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -358,7 +372,12 @@ const MovieDetails: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Poster posterPath={data?.poster_path} videoId={movieTrailer} />
+      <Poster
+        posterPath={data?.poster_path}
+        videoId={movieTrailer}
+        videoPlayerStatus={videoPlayerStatus}
+        movieVideoId={data?.id}
+      />
 
       <ScrollView
         style={styles.content}
@@ -371,6 +390,13 @@ const MovieDetails: React.FC = () => {
           onAddToWishList={handleAddToWishListClick}
           isThisSaved={isSaved}
         />
+
+        <View
+          style={{ alignItems: "flex-start", marginTop: 5, marginBottom: 5 }}
+        >
+          <PlayButton onPress={handleMoviePlay} />
+        </View>
+
         <Stats
           voteAverage={data?.vote_average}
           voteCount={data?.vote_count}

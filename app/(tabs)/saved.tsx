@@ -1,15 +1,8 @@
-import MovieCard from "@/components/MovieCard";
-import { SearchBar } from "@/components/search-bar";
-import { useDebounce } from "@/components/useDebounce";
-import { icons } from "@/constants/icons";
-import { images } from "@/constants/images";
-import { useTMDB } from "@/hooks/useGetMovies";
-import { getSavedMovies } from "@/utils/appwrite";
-import { getCurrentUser } from "@/utils/auth";
-import { useIsFocused } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
   Image,
   ScrollView,
@@ -17,28 +10,40 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useIsFocused } from "@react-navigation/native";
+
+import MovieCard from "@/components/MovieCard";
+import { icons } from "@/constants/icons";
+import { images } from "@/constants/images";
+import { getSavedMovies } from "@/utils/appwrite";
+import { getCurrentUser } from "@/utils/auth";
+
 export default function Saved() {
   const [searchQuery, setSearchQuery] = useState("");
   const isFocused = useIsFocused();
-  const [userSavedMovies, setUserSavedMovies] = useState();
-  const debounceValue = useDebounce(searchQuery, 800);
-  const { data, loading, error } = useTMDB(debounceValue);
+  const [userSavedMovies, setUserSavedMovies] = useState<any[]>([]);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    async function getUserSavedMovies() {
+    async function fetchSavedMovies() {
       const currentUser = await getCurrentUser();
       if (currentUser) {
-        const userSavedMovies = await getSavedMovies(
-          currentUser.targets[0].$id,
-        );
-        setUserSavedMovies(userSavedMovies);
+        const saved = await getSavedMovies(currentUser.targets[0].$id);
+        setUserSavedMovies(saved);
       }
     }
-    getUserSavedMovies();
+    fetchSavedMovies();
   }, [isFocused]);
-  const handleMovieSearch = (query) => {
-    setSearchQuery(query); // Update the state
-  };
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, [userSavedMovies]);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#030014" }}>
       <Image
@@ -67,36 +72,64 @@ export default function Saved() {
             }}
           />
 
-          {loading ? (
-            <ActivityIndicator
-              size="large"
-              color="#0000ff"
-              style={{ marginTop: 40, alignSelf: "center" }}
+          {userSavedMovies?.length > 0 ? (
+            <FlatList
+              data={userSavedMovies}
+              renderItem={({ item }) => <MovieCard {...item} />}
+              keyExtractor={(item) => item.id.toString()}
+              numColumns={3}
+              scrollEnabled={false}
+              style={{ marginTop: 40 }}
+              columnWrapperStyle={{
+                justifyContent: "space-between",
+                gap: 20,
+                paddingRight: 5,
+                marginBottom: 10,
+              }}
             />
-          ) : error ? (
-            <Text style={{ color: "white" }}>Error: {error.message}</Text>
           ) : (
-            <>
-              <SearchBar
-                handleSearch={handleMovieSearch}
-                placeholder="Search for a movie"
-                searchQuery={searchQuery}
-              />
-              <FlatList
-                data={userSavedMovies}
-                renderItem={({ item }) => <MovieCard {...item} />}
-                keyExtractor={(item) => item.id.toString()}
-                numColumns={3}
-                scrollEnabled={false}
-                style={{ marginTop: 40 }}
-                columnWrapperStyle={{
-                  justifyContent: "space-between",
-                  gap: 20,
-                  paddingRight: 5,
-                  marginBottom: 10,
+            <Animated.View
+              style={{
+                marginTop: 80,
+                opacity: fadeAnim,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Image
+                source={icons.noMoviesIcon} // Add a glowing movie icon here
+                style={{
+                  width: 100,
+                  height: 100,
+                  marginBottom: 20,
+                  tintColor: "#A855F7",
                 }}
               />
-            </>
+
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 18,
+                  fontWeight: "600",
+                  textAlign: "center",
+                  opacity: 0.9,
+                }}
+              >
+                No saved movies found 🎬
+              </Text>
+
+              <Text
+                style={{
+                  color: "#aaa",
+                  fontSize: 14,
+                  marginTop: 8,
+                  textAlign: "center",
+                  paddingHorizontal: 20,
+                }}
+              >
+                Start exploring and add your favorites to save them here!
+              </Text>
+            </Animated.View>
           )}
         </View>
       </ScrollView>
