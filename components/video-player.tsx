@@ -1,5 +1,5 @@
 import * as ScreenOrientation from "expo-screen-orientation";
-import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
 import WebView from "react-native-webview";
 import { useState, useRef } from "react";
 import { ServerDropdown } from "./ServerDropdown";
