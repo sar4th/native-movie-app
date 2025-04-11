@@ -1,13 +1,53 @@
-import { StyleSheet, View, ActivityIndicator } from "react-native";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
 import WebView from "react-native-webview";
-import { useState } from "react";
-
+import { useState, useRef } from "react";
 import { ServerDropdown } from "./ServerDropdown";
-export const WebViewVideoPlayer = ({ movieVideoId }: string) => {
-  const [loading, setLoading] = useState(true);
 
+export const WebViewVideoPlayer = ({
+  movieVideoId,
+}: {
+  movieVideoId: string;
+}) => {
+  const [loading, setLoading] = useState(true);
   const [url, setUrl] = useState(`https://vidlink.pro/movie/${movieVideoId}`);
-  console.log(url, "url");
+  const webViewRef = useRef(null);
+
+  const injectedJavascript = `
+    (function() {
+      const events = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"];
+      events.forEach(event => {
+        document.addEventListener(event, function() {
+          const isFullscreen = !!(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement
+          );
+          window.ReactNativeWebView.postMessage(JSON.stringify({ fullscreen: isFullscreen }));
+        });
+      });
+    })();
+    true;
+  `;
+
+  const handleMessage = async (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.fullscreen === true) {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE,
+        );
+      } else {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP,
+        );
+      }
+    } catch (err) {
+      console.log("Orientation error", err);
+    }
+  };
+
   return (
     <>
       <View style={styles.wrapper}>
@@ -20,16 +60,20 @@ export const WebViewVideoPlayer = ({ movieVideoId }: string) => {
         )}
 
         <WebView
+          ref={webViewRef}
           style={styles.webview}
           source={{ uri: url }}
           onLoadEnd={() => setLoading(false)}
           allowsFullscreenVideo
-          mediaPlaybackRequiresUserAction={false}
           javaScriptEnabled
-          allowsInlineMediaPlayback
           startInLoadingState
+          mediaPlaybackRequiresUserAction={false}
+          allowsInlineMediaPlayback
+          onMessage={handleMessage}
+          injectedJavaScript={injectedJavascript}
         />
       </View>
+
       <ServerDropdown
         onSelect={(selectedUrl) => setUrl(selectedUrl)}
         movieId={movieVideoId}
