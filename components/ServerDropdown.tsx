@@ -26,6 +26,26 @@ export const ServerDropdown = ({
       name: "Server 3",
       url: `https://111movies.com/movie/tt${movieId}`,
     },
+    {
+      id: "4",
+      name: "Server 4",
+      url: `https://vidsrc.wtf/api/1/movie/?id=${movieId}color=e01621`,
+    },
+    {
+      id: "5",
+      name: "Server 5",
+      url: `https://vidsrc.wtf/api/2/movie/?id=${movieId}color=e01621`,
+    },
+    {
+      id: "6",
+      name: "Server 6",
+      url: `https://vidsrc.wtf/api/3/movie/?id=${movieId}color=e01621`,
+    },
+    {
+      id: "7",
+      name: "Server 7",
+      url: `https://vidsrc.wtf/api/4/movie/?id=${movieId}color=e01621`,
+    },
   ];
 
   const [selected, setSelected] = useState(servers[0]);

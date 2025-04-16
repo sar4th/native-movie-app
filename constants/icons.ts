@@ -14,19 +14,25 @@ import appIcon from "@/assets/icons/apicon.png";
 import redHeart from "@/assets/icons/redheart.png";
 
 import noMoviesIcon from "@/assets/icons/no-movies.png";
+
+import tvShow from "@/assets/icons/tvShow.png";
+
+import movie from "@/assets/icons/video.png"
 export const icons = {
-  home,
-  appIcon,
-  heartIconWhite,
-  redHeart,
-  search,
-  person,
-  logo,
-  save,
-  star,
-  play,
-  arrow,
-  rightArrow,
-  whiteArrow,
-  noMoviesIcon,
+	home,
+	movie,
+	tvShow,
+	appIcon,
+	heartIconWhite,
+	redHeart,
+	search,
+	person,
+	logo,
+	save,
+	star,
+	play,
+	arrow,
+	rightArrow,
+	whiteArrow,
+	noMoviesIcon,
 };

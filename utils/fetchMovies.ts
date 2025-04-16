@@ -60,6 +60,17 @@ export const fetchMovies = async (path?: string) => {
   });
 };
 
+export const fetchShows = async (path?: string) => {
+  return await fetchFromAPI(path ? path : "discover/tv", {
+    include_adult: "false",
+    include_video: "false",
+    language: "en-US",
+    page: "1",
+    sort_by: "popularity.desc",
+  });
+};
+
+
 export const searchMovies = async (query?: string) => {
   return await fetchFromAPI("search/movie", {
     query: query ?? "",
@@ -73,6 +84,11 @@ export const searchMovies = async (query?: string) => {
 
 export const fetchMovieDetails = async (movieID?: string) => {
   return await fetchFromAPI(`movie/${movieID}`, {
+    language: "en-US",
+  });
+};
+export const fetchShowDetails = async (showID?: string) => {
+  return await fetchFromAPI(`tv/${showID}`, {
     language: "en-US",
   });
 };

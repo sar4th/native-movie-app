@@ -1,6 +1,8 @@
 import {
   fetchMovieDetails,
+  fetchShowDetails,
   fetchMovies,
+  fetchShows,
   searchMovies,
 } from "@/utils/fetchMovies";
 import { useEffect, useState } from "react";
@@ -11,6 +13,7 @@ export const useTMDB = (query: string | undefined, variant?: string) => {
   const [data, setData] = useState<any>(null);
 
   const getMoviesFetcher = async () => {
+
     if (query && variant == "search") {
       return await searchMovies(query);
     }
@@ -25,8 +28,28 @@ export const useTMDB = (query: string | undefined, variant?: string) => {
       };
 
     }
+    if (variant == "dashBoard-tvShows") {
+      let popularShows = await fetchShows("tv/popular");
+      let upcomingShows = await fetchShows("tv/on_the_air");
+      let topRatedShows = await fetchShows("tv/top_rated");
+
+      return {
+        popularShows: popularShows?.results,
+        upcomingShows: upcomingShows?.results,
+        topRatedShows: topRatedShows?.results
+      };
+
+
+
+
+    }
     if (variant === "details") {
       return await fetchMovieDetails(query);
+    }
+    if (variant == "tvShowDetails") {
+
+      return await fetchShowDetails(query);
+
     }
     if (!query && variant == "search") {
 
@@ -42,8 +65,14 @@ export const useTMDB = (query: string | undefined, variant?: string) => {
       setLoading(true);
       try {
         const movies = await getMoviesFetcher();
-        console.log(movies, "movies")
-        setData(variant === "details" ? movies : variant == "dashboard-movies" ? movies : movies.results);
+        setData(
+          variant === "details" || variant == "tvShowDetails"
+            ? movies
+            : variant === "dashboard-movies" || variant === "dashBoard-tvShows"
+              ? movies
+              : movies.results
+        );
+
       } catch (err) {
         setError("Failed to fetch movies");
         console.error("Error fetching movies:", err);

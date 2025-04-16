@@ -89,7 +89,17 @@ const _Layout = () => {
           title: "Home",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.home} title="Home" />
+            <TabIcon focused={focused} icon={icons.movie} title="Home" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="tvShows"
+        options={{
+          title: "TvShows",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={icons.tvShow} title="Tv" />
           ),
         }}
       />
