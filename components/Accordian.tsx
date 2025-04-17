@@ -1,14 +1,21 @@
-import React, { ReactNode } from 'react';
-import { StyleSheet, View, Button, LayoutChangeEvent, Text } from 'react-native';
+import React, { ReactNode } from "react";
+import {
+  StyleSheet,
+  View,
+  Button,
+  LayoutChangeEvent,
+  Text,
+  ScrollView,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withTiming,
   SharedValue,
-} from 'react-native-reanimated';
-import { EpisodesRatingsVertical } from './EpisodesRatingsVertical';
-import { fakeSeasons } from '@/constants/mock';
+} from "react-native-reanimated";
+import { EpisodesRatingsVertical } from "./EpisodesRatingsVertical";
+import { fakeSeasons } from "@/constants/mock";
 
 // -------------------------
 // AccordionItem Props Type
@@ -19,6 +26,9 @@ interface AccordionItemProps {
   duration?: number;
 }
 
+const CELL_W = 60;
+const CELL_H = 40;
+const GAP = 4;
 const AccordionItem: React.FC<AccordionItemProps> = ({
   isExpanded,
   children,
@@ -29,7 +39,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   const animatedHeight = useDerivedValue(() =>
     withTiming(contentHeight.value * (isExpanded.value ? 1 : 0), {
       duration,
-    })
+    }),
   );
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -42,9 +52,14 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
 
   return (
     <Animated.View style={[styles.accordionContainer, animatedStyle]}>
-      <View onLayout={handleLayout} style={styles.accordionContent}>
+      <Animated.ScrollView
+        onLayout={handleLayout}
+        style={[styles.accordionContent]}
+        contentContainerStyle={{ alignItems: "flex-start" }}
+        horizontal
+      >
         {children}
-      </View>
+      </Animated.ScrollView>
     </Animated.View>
   );
 };
@@ -52,33 +67,46 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
 // -------------------------
 // AccordionBox
 // -------------------------
-const AccordionBox: React.FC = ({ season }) => {
-  let arr = [1, 2, 3, 4]
+
+const AccordionBox: React.FC<any> = ({ season }) => {
+  const maxEps = Math.max(...season.map((s) => s.episodes.length));
+
   return (
-    <>
-
-
-
-      <View style={styles.box}>
-        {
-          arr.map((item) => (
-
-
-
-
-            <Text style={{ color: "white" }}>{`s${item}`}</Text>
-
-          ))
-        }
+    <View>
+      {/* Header Row: blank corner + S1, S2, ... */}
+      <View style={{ flexDirection: "row" }}>
+        <View style={[styles.cell, styles.corner]} />
+        {season.map((_, sIndex) => (
+          <View key={sIndex} style={[styles.cell, styles.headerCell]}>
+            <Text style={styles.headerText}>{`S${sIndex + 1}`}</Text>
+          </View>
+        ))}
       </View>
-      < View style={styles.box} >
 
-        {season?.map((seasons) => {
-          return (<EpisodesRatingsVertical episodes={seasons?.episodes} />)
-        })}
-      </View >
-    </>
-  )
+      {/* Episode Rows: E1, E2... + rating cells */}
+      <View style={{ flexDirection: "row" }}>
+        {/* Episode Labels Column */}
+        <View>
+          {Array.from({ length: maxEps }).map((_, epIndex) => (
+            <View key={epIndex} style={[styles.cell, styles.episodeCell]}>
+              <Text style={styles.episodeText}>{`E${epIndex + 1}`}</Text>
+            </View>
+          ))}
+        </View>
+
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContentContainer}
+          horizontal
+          showsHorizontalScrollIndicator={true}
+        >
+          {season.map((seasons, i) => (
+            <EpisodesRatingsVertical key={i} episodes={seasons.episodes} />
+          ))}
+        </ScrollView>
+      </View>
+    </View>
+  );
 };
 
 // -------------------------
@@ -125,29 +153,75 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 24,
   },
+  row: {
+    flexDirection: "row",
+    marginBottom: GAP,
+  },
+  cell: {
+    width: CELL_W,
+    height: CELL_H,
+    marginHorizontal: GAP / 2,
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  corner: {
+    backgroundColor: "transparent",
+  },
+  headerCell: {
+    backgroundColor: "transparent",
+  },
+  headerText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  episodeCell: {
+    backgroundColor: "transparent",
+  },
+  episodeText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  ratingText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
   buttonRow: {
     padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   fullWidth: {
-    width: '100%',
+    width: "100%",
+    alignItems: "flex-start",
   },
   accordionContainer: {
-    width: '100%',
-    overflow: 'hidden',
+    width: "100%",
+    overflow: "hidden",
+    alignItems: "flex-start",
   },
   accordionContent: {
-    width: '100%',
-    position: 'absolute',
-    alignItems: 'center',
+    width: "100%",
+    position: "absolute",
   },
   box: {
-    width: '100%',
-    //backgroundColor: '#b58df1',
+    width: "100%",
+    gap: 10,
     borderRadius: 20,
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-evenly"
+    justifyContent: "space-evenly",
+  },
+
+  scrollContainer: {
+    flexGrow: 0,
+  }, // just horizontal scroll container
+
+  scrollContentContainer: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 10,
+    paddingRight: 30,
+    minWidth: "100%", // ensures scrollability
   },
 });
