@@ -70,7 +70,6 @@ export const fetchShows = async (path?: string) => {
   });
 };
 
-
 export const searchMovies = async (query?: string) => {
   return await fetchFromAPI("search/movie", {
     query: query ?? "",
@@ -82,6 +81,16 @@ export const searchMovies = async (query?: string) => {
   });
 };
 
+export const searchTvShows = async (query?: string) => {
+  return await fetchFromAPI("search/tv", {
+    query: query ?? "",
+    include_adult: "false",
+    include_video: "false",
+    language: "en-US",
+    page: "1",
+    sort_by: "popularity.desc",
+  });
+};
 export const fetchMovieDetails = async (movieID?: string) => {
   return await fetchFromAPI(`movie/${movieID}`, {
     language: "en-US",
@@ -95,6 +104,15 @@ export const fetchShowDetails = async (showID?: string) => {
 
 export const fetchMovieVideos = async (movieID?: string) => {
   return await fetchFromAPI(`movie/${movieID}/videos`, {
+    language: "en-US",
+  });
+};
+
+export const fetchTvSeasonsAndEpisodeData = async (
+  showID: string,
+  seasonNum: string,
+) => {
+  return await fetchFromAPI(`tv/${showID}/season/${seasonNum}`, {
     language: "en-US",
   });
 };

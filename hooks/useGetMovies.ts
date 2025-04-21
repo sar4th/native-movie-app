@@ -4,17 +4,24 @@ import {
   fetchMovies,
   fetchShows,
   searchMovies,
+  searchTvShows,
 } from "@/utils/fetchMovies";
 import { useEffect, useState } from "react";
 
-export const useTMDB = (query: string | undefined, variant?: string) => {
+export const useTMDB = (
+  query: string | undefined,
+  variant?: string,
+  page?: string,
+) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
 
   const getMoviesFetcher = async () => {
-
     if (query && variant == "search") {
+      if (page == "tv") {
+        return await searchTvShows(query);
+      }
       return await searchMovies(query);
     }
     if (variant == "dashboard-movies") {
@@ -24,9 +31,8 @@ export const useTMDB = (query: string | undefined, variant?: string) => {
       return {
         popularMovies: popularMovies?.results,
         upcomingMovies: upcomingMovies?.results,
-        topRatedMovies: topRatedMovies?.results
+        topRatedMovies: topRatedMovies?.results,
       };
-
     }
     if (variant == "dashBoard-tvShows") {
       let popularShows = await fetchShows("tv/popular");
@@ -36,28 +42,18 @@ export const useTMDB = (query: string | undefined, variant?: string) => {
       return {
         popularShows: popularShows?.results,
         upcomingShows: upcomingShows?.results,
-        topRatedShows: topRatedShows?.results
+        topRatedShows: topRatedShows?.results,
       };
-
-
-
-
     }
     if (variant === "details") {
       return await fetchMovieDetails(query);
     }
     if (variant == "tvShowDetails") {
-
       return await fetchShowDetails(query);
-
     }
     if (!query && variant == "search") {
-
       return await fetchMovies();
-
-
     }
-
   };
 
   useEffect(() => {
@@ -70,9 +66,8 @@ export const useTMDB = (query: string | undefined, variant?: string) => {
             ? movies
             : variant === "dashboard-movies" || variant === "dashBoard-tvShows"
               ? movies
-              : movies.results
+              : movies.results,
         );
-
       } catch (err) {
         setError("Failed to fetch movies");
         console.error("Error fetching movies:", err);

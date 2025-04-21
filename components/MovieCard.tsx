@@ -8,9 +8,10 @@ const MovieCard = ({
   title,
   vote_average,
   release_date,
+  searchVarient,
 }: Movie) => {
   return (
-    <Link href={`/movie/${id}`} asChild>
+    <Link href={`/${searchVarient == "tv" ? "tv" : "movie"}/${id}`} asChild>
       <TouchableOpacity style={styles.card}>
         <Image
           source={{

@@ -4,6 +4,7 @@ import { useDebounce } from "@/components/useDebounce";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { useTMDB } from "@/hooks/useGetMovies";
+import { useLocalSearchParams, useSearchParams } from "expo-router/build/hooks";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,9 +17,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { searchVarient } = useLocalSearchParams();
   const debounceValue = useDebounce(searchQuery, 800);
-  const { data, loading, error } = useTMDB(debounceValue, "search");
-  console.log(data, "this is ")
+  const { data, loading, error } = useTMDB(
+    debounceValue,
+    "search",
+    searchVarient,
+  );
   const handleMovieSearch = (query) => {
     setSearchQuery(query);
   };
@@ -65,9 +71,12 @@ export default function Search() {
                 placeholder="Search for a movie"
                 searchQuery={searchQuery}
               />
+
               <FlatList
-                data={data ?? data}
-                renderItem={({ item }) => <MovieCard {...item} />}
+                data={data ?? []}
+                renderItem={({ item }) => (
+                  <MovieCard {...item} searchVarient={searchVarient} />
+                )}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={3}
                 scrollEnabled={false}

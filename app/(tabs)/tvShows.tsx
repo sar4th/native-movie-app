@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
-import TvShowsCard from "@/components/TvShowsCard"
+import TvShowsCard from "@/components/TvShowsCard";
 import { SearchBar } from "@/components/search-bar";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
@@ -21,7 +21,7 @@ const TABS = ["Popular", "Top Rated", "Upcoming"];
 
 export default function Index() {
   const { data, loading, error } = useTMDB(undefined, "dashBoard-tvShows");
-  console.log(data, "tvhh")
+  console.log(data, "tvhh");
   const [activeTab, setActiveTab] = useState("Popular");
   const getShows = () => {
     switch (activeTab) {
@@ -75,7 +75,7 @@ export default function Index() {
           ) : (
             <>
               <SearchBar
-                onPress={() => router.push("/search")}
+                onPress={() => router.push("/search?searchVarient=tv")}
                 placeholder="Search for a movie"
               />
 
@@ -95,8 +95,7 @@ export default function Index() {
                       paddingVertical: 8,
                       paddingHorizontal: 16,
                       borderRadius: 20,
-                      backgroundColor:
-                        activeTab === tab ? "white" : "#1a1a2e",
+                      backgroundColor: activeTab === tab ? "white" : "#1a1a2e",
                     }}
                   >
                     <Text
@@ -114,7 +113,11 @@ export default function Index() {
               <FlatList
                 data={getShows()}
                 renderItem={({ item }) =>
-                  item.empty ? <View style={{ flex: 1 }} /> : <TvShowsCard {...item} />
+                  item.empty ? (
+                    <View style={{ flex: 1 }} />
+                  ) : (
+                    <TvShowsCard {...item} />
+                  )
                 }
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={3}
