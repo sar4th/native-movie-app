@@ -25,6 +25,7 @@ import {
 import { PlayButton } from "@/components/PlayButton";
 import { WebViewVideoPlayer } from "@/components/video-player";
 import Accordian from "@/components/Accordian";
+import { log } from "util";
 /* ==================== Poster Component ==================== */
 interface PosterProps {
   posterPath?: string;
@@ -174,8 +175,8 @@ const Overview: React.FC<OverviewProps> = ({ overview }) => (
     <Text style={styles.overviewText}>{overview}</Text>
   </View>
 );
-const EpisodeWiseRatings = () => {
-  return <Accordian />;
+const EpisodeWiseRatings = ({ data }) => {
+  return <Accordian data={data} />;
 };
 /* ==================== Details Component ==================== */
 interface DetailsProps {
@@ -288,6 +289,8 @@ const TVShowDetails: React.FC = () => {
   const [savedMovie, setSavedMovie] = useState();
 
   const [videoPlayerStatus, setVideoPlayerStatus] = useState(false);
+
+  const [ratingData, setRatingData] = useState();
   useEffect(() => {
     const fetchUserAndCheckMovie = async () => {
       try {
@@ -319,20 +322,46 @@ const TVShowDetails: React.FC = () => {
     //fetchUserAndCheckMovie()
   }, []);
   const { data, loading, error } = useTMDB(id, "tvShowDetails");
+
   useEffect(() => {
-    const seasonNumbers = data?.seasons.map((s) => s.season_number);
+    if (!data || loading || error) return;
+
     const getTvSeasonsAndEpisodeData = async () => {
-      const seasonData = await Promise.all(
-        seasonNumbers.map((seasonNum) =>
-          fetchTvSeasonsAndEpisodeData(id, seasonNum),
-        ),
-      );
-      getTvSeasonsAndEpisodeData(id);
+      try {
+        const seasonNumbers = Array.isArray(data.seasons)
+          ? data.seasons.map((s) => s.season_number)
+          : [];
+
+        if (seasonNumbers.length === 0) {
+          console.warn("No seasons found.");
+          return;
+        }
+
+        const seasonData = await Promise.all(
+          seasonNumbers.map((seasonNum) =>
+            fetchTvSeasonsAndEpisodeData(id, seasonNum),
+          ),
+        );
+
+        const ratingData = seasonData.map((season) => ({
+          season: season.season_number,
+          episodes: season.episodes.map((ep) => ({
+            episode: ep.episode_number,
+            title: ep.name,
+
+            rating: ep.vote_average.toFixed(1),
+          })),
+        }));
+        console.log(ratingData, "ratingData");
+
+        setRatingData(ratingData);
+      } catch (err) {
+        console.error("Failed to fetch seasons", err);
+      }
     };
 
     getTvSeasonsAndEpisodeData();
-  }, [data]);
-
+  }, [data, loading, error, id]);
   const [isLoading, setIsLoading] = useState(false);
   async function handleAddToWishListClick() {
     if (isLoading) return;
@@ -422,7 +451,7 @@ const TVShowDetails: React.FC = () => {
           popularity={data?.popularity}
         />
         <Overview overview={data?.overview} />
-        <EpisodeWiseRatings />
+        <EpisodeWiseRatings data={ratingData} />
         <Details releaseDate={data?.release_date} status={data?.status} />
         <Genres genres={data?.genres} />
         <Countries countries={data?.production_countries} />

@@ -16,6 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { EpisodesRatingsVertical } from "./EpisodesRatingsVertical";
 import { fakeSeasons } from "@/constants/mock";
+import { log } from "console";
 
 // -------------------------
 // AccordionItem Props Type
@@ -69,23 +70,22 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
 // -------------------------
 
 const AccordionBox: React.FC<any> = ({ season }) => {
-  const maxEps = Math.max(...season.map((s) => s.episodes.length));
+  const maxEps = Array.isArray(season)
+    ? Math.max(...season.map((s) => s.episodes?.length || 0))
+    : 0;
 
   return (
     <View>
-      {/* Header Row: blank corner + S1, S2, ... */}
       <View style={{ flexDirection: "row" }}>
         <View style={[styles.cell, styles.corner]} />
-        {season.map((_, sIndex) => (
+        {season?.map((_, sIndex) => (
           <View key={sIndex} style={[styles.cell, styles.headerCell]}>
             <Text style={styles.headerText}>{`S${sIndex + 1}`}</Text>
           </View>
         ))}
       </View>
 
-      {/* Episode Rows: E1, E2... + rating cells */}
       <View style={{ flexDirection: "row" }}>
-        {/* Episode Labels Column */}
         <View>
           {Array.from({ length: maxEps }).map((_, epIndex) => (
             <View key={epIndex} style={[styles.cell, styles.episodeCell]}>
@@ -100,7 +100,7 @@ const AccordionBox: React.FC<any> = ({ season }) => {
           horizontal
           showsHorizontalScrollIndicator={true}
         >
-          {season.map((seasons, i) => (
+          {season?.map((seasons, i) => (
             <EpisodesRatingsVertical key={i} episodes={seasons.episodes} />
           ))}
         </ScrollView>
@@ -113,22 +113,25 @@ const AccordionBox: React.FC<any> = ({ season }) => {
 // AccordionParent Props Type
 // -------------------------
 interface AccordionParentProps {
+  data: any[];
   open: SharedValue<boolean>;
 }
 
-const AccordionParent: React.FC<AccordionParentProps> = ({ open }) => (
-  <View style={styles.fullWidth}>
-    <AccordionItem isExpanded={open}>
-      <AccordionBox season={fakeSeasons} />
-    </AccordionItem>
-  </View>
-);
-
+const AccordionParent: React.FC<AccordionParentProps> = ({ open, data }) => {
+  return (
+    <View style={styles.fullWidth}>
+      <AccordionItem isExpanded={open}>
+        <AccordionBox season={data} />
+      </AccordionItem>
+    </View>
+  );
+};
 // -------------------------
 // Main Component
 // -------------------------
-const Accordion: React.FC = () => {
+const Accordion: React.FC = ({ data }) => {
   const open = useSharedValue(false);
+
   const toggleAccordion = () => {
     open.value = !open.value;
   };
@@ -138,7 +141,7 @@ const Accordion: React.FC = () => {
       <View style={styles.buttonRow}>
         <Button onPress={toggleAccordion} title="See Episode Wise Ratings" />
       </View>
-      <AccordionParent open={open} />
+      <AccordionParent open={open} data={data} />
     </View>
   );
 };
